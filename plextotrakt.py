@@ -1,15 +1,6 @@
+import json
 from flask import Flask, request
-import json, os, trakt.core
-from trakt import init
-from trakt.tv import TVEpisode
-from trakt.movies import Movie
-
-def checkAuth():
-    if os.path.isfile(configOauthPath):
-        return
-    else:
-        print("Authentication File not found!\n Trying first authentication, user input required ...")
-        print(init(usernameTrakt, client_id = clientID, client_secret = clientSecret, store = True))
+from trakt import tv, movies
 
 app = Flask(__name__)
 @app.route("/",methods=["POST"])
@@ -25,20 +16,19 @@ def plexWebhook():
                 showTitle = payload["Metadata"]["grandparentTitle"]
                 showSeason = int(payload["Metadata"]["parentIndex"])
                 showEpisode = int(payload["Metadata"]["index"])
-                traktEpisode = TVEpisode(showTitle, showSeason, showEpisode)
-                print(traktEpisode)
+                traktEpisode = tv.TVEpisode(showTitle, showSeason, showEpisode)
                 try:
                     traktEpisode.mark_as_seen()
-                    print("SEND SCROBBLE TO TRAKT")
+                    print("SEND SCROBBLE TO TRAKT FOR: " + str(traktEpisode)[13:])
                 except:
                     print("COULD NOT SEND DATA TO TRAKT")
             elif payload["Metadata"]["librarySectionType"] == "movie":
                 movieTitle = payload["Metadata"]["title"]
-                movieYear = payload["Metadata"]["year"]
-                traktMovie = Movie(movieTitle, movieYear)
+                movieYear = int(payload["Metadata"]["year"])
+                traktMovie = movies.Movie(movieTitle, movieYear)
                 try:
                     traktMovie.mark_as_seen()
-                    print("SEND SCROBBLE TO TRAKT")
+                    print("SEND SCROBBLE TO TRAKT FOR: " + str(traktMovie)[9:])
                 except:
                     print("COULD NOT SEND DATA TO TRAKT")
             else:
@@ -50,14 +40,6 @@ def plexWebhook():
     return "OK"
 
 usernamePlex = "" # Plex Username
-usernameTrakt = "" # Trakt Username
-clientID = "" # Trakt App Client ID
-clientSecret = "" # Trakt App Client Secret
-configOauthPath = "oauth_trakt.json"
-trakt.core.AUTH_METHOD = trakt.core.OAUTH_AUTH
-trakt.core.CONFIG_PATH = configOauthPath
-
-checkAuth()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
