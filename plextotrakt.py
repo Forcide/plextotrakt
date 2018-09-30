@@ -1,4 +1,4 @@
-import json
+import json, configparser
 from flask import Flask, request
 from trakt import tv, movies
 
@@ -39,7 +39,8 @@ def plexWebhook():
         print("WRONG USER")
     return "OK"
 
-usernamePlex = "" # Plex Username
-
 if __name__ == "__main__":
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    usernamePlex = config["plex"]["username"]
     app.run(host="0.0.0.0")

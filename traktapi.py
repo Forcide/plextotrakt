@@ -1,4 +1,4 @@
-import os, trakt.core
+import os, trakt.core, configparser
 from trakt import init, core, movies
 
 def checkAuthFile():
@@ -25,7 +25,6 @@ def connectTrakt():
 def startAuth():
     loop = 0
     while loop != 3:
-        loop =+ 1
         if checkAuthFile() == True:
             if checkTrakt() == True:
                 return True
@@ -33,10 +32,12 @@ def startAuth():
                 connectTrakt()
         else:
             connectTrakt()
-
-usernameTrakt = ""
-clientID = ""
-clientSecret = ""
+        loop += 1
 
 if __name__== "__main__":
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    usernameTrakt = config["trakt"]["username"]
+    clientID = config["trakt"]["clientid"]
+    clientSecret = config["trakt"]["clientsecret"]
     startAuth()
