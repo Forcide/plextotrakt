@@ -1,5 +1,6 @@
-import os, trakt.core, configparser
+import os, configparser, time, logging
 from trakt import init, core, movies
+from datetime import timezone, timedelta
 
 def checkAuthFile():
     home = os.path.expanduser("~")
@@ -13,31 +14,69 @@ def checkTrakt():
         movies.trending_movies()
         return True
     except:
-        print("Connecting to Trakt could not have been established!")
-        os.remove(home + "\.pytrakt.json")
+        if checkAuthFile == True:
+            os.remove(home + "\.pytrakt.json")
+            logger.debug("AUTH FILE DELETED")
         return False
 
 def connectTrakt():
     print("Trying (first) authentication, user input required ...")
-    core.AUTH_METHOD = trakt.core.OAUTH_AUTH
-    init(usernameTrakt, client_id = clientID, client_secret = clientSecret, store = True)
+    core.AUTH_METHOD = core.OAUTH_AUTH
+    try:
+        init(usernameTrakt, client_id = clientID, client_secret = clientSecret, store = True)
+        return True
+    except:
+        return False
 
-def startAuth():
-    loop = 0
-    while loop != 3:
-        if checkAuthFile() == True:
-            if checkTrakt() == True:
-                return True
-            else:
-                connectTrakt()
+def startAuth(count):
+    if checkAuthFile() == True:
+        logger.debug("TRAKT AUTH FILE FOUND")
+        if checkTrakt() == True:
+            logger.info("CONNECTION TO TRAKT WAS SUCCESSFUL")
+            exit(0)
         else:
-            connectTrakt()
-        loop += 1
+            logger.debug("CONNECTION TO TRAKT WAS NOT SUCCESSFUL")
+            if count == 1:
+                return exit(1)
+            else:
+                logger.info("TRYING NEW AUTH FOR USER: " + usernameTrakt)
+                if connectTrakt() == True:
+                    startAuth(1)
+                else:
+                    logger.info("AUTH NOT SUCCESSFUL")
+                    return exit(1)
+    else:
+        logger.debug("TRAKT AUTH FILE NOT FOUND")
+        if count == 1:
+            exit(1)
+        else:
+            logger.info("TRYING NEW AUTH FOR USER: " + usernameTrakt)
+            if connectTrakt() == True:
+                startAuth(1)
+            else:
+                logger.info("AUTH NOT SUCCESSFUL")
+                exit(1)
 
 if __name__== "__main__":
+    tzOff = time.localtime().tm_gmtoff
+    tzInfo = str(timezone(timedelta(0, tzOff)))
+    logging.basicConfig(
+        filename = "plextotrakt.log",
+        filemode = "a",
+        format = "%(asctime)s " + tzInfo + ", %(name)s, %(levelname)s, %(message)s",
+        datefmt = "%d-%m-%Y %H:%M:%S",
+    )
     config = configparser.ConfigParser()
     config.read("config.ini")
+    logLevel = config["general"]["logging"]
+    logger = logging.getLogger("traktapi")
+    if logLevel == "DEBUG":
+        logger.setLevel(logging.DEBUG)
+    elif logLevel == "INFO":
+        logger.setLevel(logging.INFO)
+    elif logLevel == "ERROR":
+        logger.setLevel(logging.ERROR)
     usernameTrakt = config["trakt"]["username"]
     clientID = config["trakt"]["clientid"]
     clientSecret = config["trakt"]["clientsecret"]
-    startAuth()
+    startAuth(0)
