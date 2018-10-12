@@ -1,4 +1,4 @@
-import json, configparser, logging, time
+import json, configparser, logging, time, os
 from flask import Flask, request
 from trakt import tv, movies
 from datetime import timezone, timedelta
@@ -10,7 +10,8 @@ def plexWebhook():
     try:
         payload = json.loads(data["payload"])
     except:
-        webhookLogger.debug("ERROR WITH PAYLOAD")
+        logger.debug("ERROR WITH PAYLOAD")
+        return "ERROR"
     if payload["Account"]["title"] == usernamePlex:
         if payload["event"] == "media.scrobble":
             if payload["Metadata"]["librarySectionType"] == "show":
@@ -41,6 +42,10 @@ def plexWebhook():
     return "OK"
 
 if __name__ == "__main__":
+    operatingSystem = os.name
+    if "posix" in operatingSystem:
+        os.environ['TZ'] = 'UTC'
+        time.tzset()
     tzOff = time.localtime().tm_gmtoff
     tzInfo = str(timezone(timedelta(0, tzOff)))
     logging.basicConfig(
@@ -60,6 +65,10 @@ if __name__ == "__main__":
         logger.setLevel(logging.INFO)
     elif logLevel == "ERROR":
         logger.setLevel(logging.ERROR)
+    else:
+        logger.setLevel(logging.NOTSET)
+    if "posix" in operatingSystem:
+        logger.debug("LINUX DETECTED, SCRIPT TIMEZONE SET TO UTC")
     usernamePlex = config["plex"]["username"]
     logger.info("FLASK APP GOING TO INITIALIZE NOW")
     app.run(host="0.0.0.0")

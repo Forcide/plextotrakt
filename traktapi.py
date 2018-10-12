@@ -3,8 +3,18 @@ from trakt import init, core, movies
 from datetime import timezone, timedelta
 
 def checkAuthFile():
-    home = os.path.expanduser("~")
-    if os.path.isfile(home + "\.pytrakt.json"):
+    operatingSystem = os.name
+    if "nt" in operatingSystem:
+        logger.debug("WINDOWS DETECTED")
+        pytraktPath = "\.pytrakt.json"
+    elif "posix" in operatingSystem:
+        logger.debug("UNIX DETECTED")
+        pytraktPath = "/.pytrakt.json"
+    else:
+        logger.debug("UNKNOWN OS DETECTED, SKIPPING")
+        exit(1)
+    homePath = os.path.expanduser("~")
+    if os.path.isfile(homePath + pytraktPath):
         return True
     else:
         return False
@@ -37,14 +47,14 @@ def startAuth(count):
         else:
             logger.debug("CONNECTION TO TRAKT WAS NOT SUCCESSFUL")
             if count == 1:
-                return exit(1)
+                exit(1)
             else:
                 logger.info("TRYING NEW AUTH FOR USER: " + usernameTrakt)
                 if connectTrakt() == True:
                     startAuth(1)
                 else:
                     logger.info("AUTH NOT SUCCESSFUL")
-                    return exit(1)
+                    exit(1)
     else:
         logger.debug("TRAKT AUTH FILE NOT FOUND")
         if count == 1:
@@ -76,6 +86,8 @@ if __name__== "__main__":
         logger.setLevel(logging.INFO)
     elif logLevel == "ERROR":
         logger.setLevel(logging.ERROR)
+    else:
+        logger.setLevel(logging.NOTSET)
     usernameTrakt = config["trakt"]["username"]
     clientID = config["trakt"]["clientid"]
     clientSecret = config["trakt"]["clientsecret"]

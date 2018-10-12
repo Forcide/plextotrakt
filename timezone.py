@@ -13,30 +13,14 @@ def setTimezone(id):
             configWrite.writelines(configLines)
             configWrite.close()
             logger.debug("WRITING LOCALTIMEZONE TO CONFIG: " + localTimezone)
+        traktTimezone = "UTC"
+        os.system("tzutil /s \"%s\"" % (traktTimezone,))
+        logger.debug("TIMEZONE SET TO: " + traktTimezone)
     elif id == 2:
         configTimezone = config["general"]["localtimezone"]
         logger.debug("LOCALTIMEZONE DETECTED IN CONFIG: " + configTimezone)
-    traktTimezone = "UTC"
-    operatingSystem = os.name
-    if "nt" in operatingSystem:
-        logger.debug("WINDOWS DETECTED")
-        if id == 1:
-            os.system("tzutil /s \"%s\"" % (traktTimezone,))
-            logger.info("TIMEZONE SET TO: " + traktTimezone)
-        elif id == 2:
-            os.system("tzutil /s \"%s\"" % (configTimezone,))
-            logger.info("TIMEZONE SET TO: " + configTimezone)
-    elif "posix" in operatingSystem:
-        logger.debug("UNIX DETECTED")
-        if id == 1:
-            os.environ["TZ"] = traktTimezone
-            time.tzset()
-            logger.info("TIMEZONE SET TO: " + traktTimezone)
-        elif id == 2:
-            timezone = time.tzname[0]
-            os.environ["TZ"] = configTimezone
-            time.tzset()
-            logger.info("TIMEZONE SET TO: " + configTimezone)
+        os.system("tzutil /s \"%s\"" % (configTimezone,))
+        logger.debug("TIMEZONE SET TO: " + configTimezone)
 
 if __name__== "__main__":
     tzOff = time.localtime().tm_gmtoff
@@ -57,4 +41,6 @@ if __name__== "__main__":
         logger.setLevel(logging.INFO)
     elif logLevel == "ERROR":
         logger.setLevel(logging.ERROR)
+    else:
+        logger.setLevel(logging.NOTSET)
     setTimezone(int(sys.argv[1]))
