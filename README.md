@@ -21,7 +21,7 @@ Fill out the included [config.ini](config.ini), find instructions in the file.
 
 At the first run you will be ask to copy and paste an URL in a browser and copy the PIN back in the script window.
 
-Additionaly add the script to the *crontab*(use @reboot) on Linux or Windows Task Scheduler.
+Additionaly add the script to the *crontab*(use `@reboot`) on Linux or Windows Task Scheduler.
 
 ## Run
 To run the program on Linux:
