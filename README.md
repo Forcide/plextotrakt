@@ -6,11 +6,13 @@ The code highly depends on the PyTrakt project from moogar0880 and the Flask pro
 PLEASE NOTE: I am absolutely not a programmer, use the code at your own risk. The code is made for my exact needs.
 
 ## Install
-Download and extract the folder to any location.
+Download and extract the [project](https://github.com/Forcide/plextotrakt/releases) to any location.
 
-Install the needed python modules (admin user):
-  * trakt
-  * flask
+Install [Python3](https://www.python.org/) and install the needed python modules (admin/root user):
+  * [trakt](https://pypi.org/project/trakt/)
+  * [Flask](https://pypi.org/project/Flask/)
+
+For Linux install *screen* via your package manager.
 
 ## Configure
 To enable webhooks (Plex Pass required) in Plex go to *Account* - *Webhooks* and set the *URL* to the correct URL, eq `http://192.168.0.100:5000`.
@@ -18,6 +20,8 @@ To enable webhooks (Plex Pass required) in Plex go to *Account* - *Webhooks* and
 Fill out the included [config.ini](config.ini), find instructions in the file.
 
 At the first run you will be ask to copy and paste an URL in a browser and copy the PIN back in the script window.
+
+Additionaly add the script to the *crontab*(use @reboot) on Linux or Windows Task Scheduler.
 
 ## Run
 To run the program on Linux:
